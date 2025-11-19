@@ -1,3 +1,4 @@
+
 import p5 from 'p5';
 
 export interface AudioData {
@@ -29,6 +30,7 @@ export interface SketchParams {
 export interface Sketch {
   id: string;
   name: string;
+  audioReactivity?: string; // Description of how audio affects the sketch
   params?: SketchParams; // Optional params for customization
   setup: (p: p5) => void;
   // Updated draw signature to accept background image
