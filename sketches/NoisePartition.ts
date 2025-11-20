@@ -16,7 +16,7 @@ const PARTITION_PALETTES = [
 export class NoisePartition implements Sketch {
   id = 'partition';
   name = 'Partition de Bruit';
-  audioReactivity = 'Les basses réinitialisent le canevas. L\'énergie globale déclenche les divisions. Les aigus font varier les couleurs.';
+  audioReactivity = 'Les basses réinitialisent le canevas une fois terminé. L\'énergie globale déclenche les divisions. Les aigus font varier les couleurs.';
 
   params: SketchParams = {
       maxPolys: { type: 'slider', value: 150, min: 50, max: 300, step: 10, name: 'Max Partitions' },
@@ -25,6 +25,7 @@ export class NoisePartition implements Sketch {
   private polygons: any[] = [];
   private curveCount = 0;
   private currentPalette: string[] = [];
+  private stagnationFrames = 0; // Compteur pour le reset auto
 
   setup(p: p5) {
     p.noiseDetail(1, 0.5);
@@ -36,6 +37,7 @@ export class NoisePartition implements Sketch {
     p.colorMode(p.HSB, 1);
     
     this.curveCount = 0;
+    this.stagnationFrames = 0;
     this.currentPalette = p.random(PARTITION_PALETTES);
     const pts = [
         p.createVector(0, 0), 
@@ -64,19 +66,30 @@ export class NoisePartition implements Sketch {
     p.colorMode(p.HSB, 1);
     
     if (bgImage) {
-         p.push();
-         p.colorMode(p.RGB, 255);
-         drawBackground(p, bgImage, 50);
-         p.pop();
+         // Si image : Fond noir pour faire ressortir les éclats texturés
+         p.background(0);
+         p.textureMode(p.NORMAL); // UV mapping normalisé (0-1)
     } else {
+         // Si pas d'image : Fond clair style papier
          p.background(0, 0, 0.96); 
     }
     
-    if (this.curveCount > this.params.maxPolys.value && audio.bass > 0.85) {
-        this.generate(p);
+    const maxP = this.params.maxPolys.value;
+
+    // LOGIQUE DE RESET
+    // Si on a atteint le max de polygones
+    if (this.curveCount >= maxP) {
+        this.stagnationFrames++;
+        
+        // Reset automatique après ~1 seconde (60 frames) de stagnation
+        // OU Reset immédiat sur une grosse basse
+        if (this.stagnationFrames > 60 || audio.bass > 0.8) {
+            this.generate(p);
+        }
+    } else {
+        this.stagnationFrames = 0;
     }
     
-    const maxP = this.params.maxPolys.value;
     const shouldSplit = this.curveCount < maxP && audio.energy > 0.25; 
 
     if (shouldSplit) {
@@ -117,9 +130,28 @@ export class NoisePartition implements Sketch {
     p.strokeWeight(1.5);
     
     for (let poly of this.polygons) {
-        p.fill(poly.color);
+        if (bgImage) {
+            // Mode Image : On texture avec l'image de fond
+            // On applique une légère teinte colorée basée sur la palette pour garder le style
+            const h = p.hue(poly.color);
+            const s = p.saturation(poly.color);
+            // Saturation réduite pour bien voir l'image, luminosité max
+            p.tint(h, s * 0.4, 1, 1);
+            p.texture(bgImage);
+        } else {
+            // Mode Standard : Couleur pleine
+            p.fill(poly.color);
+        }
+
         p.beginShape();
-        for (let v of poly.pts) p.vertex(v.x, v.y);
+        for (let v of poly.pts) {
+            if (bgImage) {
+                // Mapping UV basé sur la position relative à l'écran
+                p.vertex(v.x, v.y, v.x / p.width, v.y / p.height);
+            } else {
+                p.vertex(v.x, v.y);
+            }
+        }
         p.endShape(p.CLOSE);
     }
     

@@ -13,10 +13,7 @@ const gradConstants = {
 };
 
 const vec = (x: number,y: number,z: number): p5.Vector => new p5.Vector (x,y,z);
-const mix = (x: any, y: any, amt: number) => {
-    if (x instanceof p5.Vector) {
-         return p5.Vector.add(p5.Vector.mult(x, 1-amt), p5.Vector.mult(y, amt));
-    }
+const mix = (x: number, y: number, amt: number) => {
     return x * (1-amt) + y * amt;
 };
 const fract = (x: number) => x - Math.floor(x);
