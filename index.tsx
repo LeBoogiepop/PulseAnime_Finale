@@ -309,7 +309,7 @@ const switchSketch = (idx: number) => {
   }
 
   // Determine Renderer
-  const nextRendererMode = (currentSketch.id === 'travel' || currentSketch.id === 'landing') ? 'WEBGL' : 'P2D';
+const nextRendererMode = (currentSketch.id === 'travel' || currentSketch.id === 'landing' || currentSketch.id === 'partition') ? 'WEBGL' : 'P2D';;
 
   // Update UI - MONOCHROME STYLES
   Array.from(controlsContainer.children).forEach((btn: any, i) => {
