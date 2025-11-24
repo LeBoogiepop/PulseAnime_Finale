@@ -1,4 +1,3 @@
-
 import p5 from 'p5';
 import { Sketch, AudioData, SketchParams } from '../types';
 

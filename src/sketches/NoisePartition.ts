@@ -1,4 +1,3 @@
-
 import p5 from 'p5';
 import { Sketch, AudioData, SketchParams } from '../types';
 import { drawBackground } from './Library';
@@ -43,16 +42,12 @@ export class NoisePartition implements Sketch {
         this.stagnationFrames = 0;
         this.currentPalette = p.random(PARTITION_PALETTES);
 
-        const w = p.width;
-        const h = p.height;
-        const hw = w / 2;
-        const hh = h / 2;
-
+        // Géométrie 0 à width (nécessite translation en WebGL)
         const pts = [
-            p.createVector(-hw, -hh), // Top-Left
-            p.createVector(hw, -hh),  // Top-Right
-            p.createVector(hw, hh),   // Bottom-Right
-            p.createVector(-hw, hh)   // Bottom-Left
+            p.createVector(0, 0),
+            p.createVector(p.width, 0),
+            p.createVector(p.width, p.height),
+            p.createVector(0, p.height)
         ];
 
         const initColor = p.color(p.random(this.currentPalette));
@@ -60,7 +55,6 @@ export class NoisePartition implements Sketch {
         const mbr = new MBR();
         pts.forEach(pt => mbr.add(pt));
 
-        // Initialize with random explosion vector for 3D effect
         this.polygons = [{
             pts,
             mbr,
@@ -74,7 +68,8 @@ export class NoisePartition implements Sketch {
 
     draw(p: p5, audio: AudioData, bgImage?: p5.Image | null) {
         p.push();
-        // Pas de translation globale ici car la géométrie est déjà centrée (voir generate)
+        // Centrage WebGL essentiel car la géométrie est en coordonnées écran (0,0 haut gauche)
+        p.translate(-p.width / 2, -p.height / 2);
         
         p.colorMode(p.HSB, 1);
 
@@ -84,14 +79,14 @@ export class NoisePartition implements Sketch {
 
         if (hasImage) {
             p.background(0);
-            p.textureMode(p.NORMAL); // Important pour le mapping UV
+            p.textureMode(p.NORMAL);
         } else {
             p.background(0, 0, 0.96);
         }
 
         const maxP = this.params.maxPolys.value;
 
-        // LOGIQUE DE RESET
+        // Reset Logic
         if (this.curveCount >= maxP) {
             this.stagnationFrames++;
             if (this.stagnationFrames > 60 || audio.bass > 0.85) {
@@ -112,7 +107,6 @@ export class NoisePartition implements Sketch {
 
             if (seedPoly) {
                 let seed = findSplitChordInteriorPoint(seedPoly.pts);
-                // On passe les dimensions pour la vérification des limites centrées
                 let curvePts = genCurve(p, seed, audio.mid);
 
                 for (let poly of this.polygons) {
@@ -139,22 +133,18 @@ export class NoisePartition implements Sketch {
             }
         }
 
-        // Render Loop
         for (let poly of this.polygons) {
             p.push();
 
-            // Calculate chaotic displacement (Explosion physics)
-            // Bass drives the magnitude of the explosion
+            // Effet d'explosion basé sur les basses
             const explosion = audio.bass * chaosVal;
             const displacement = poly.vel.copy().mult(explosion);
-
-            // Apply displacement in 3D
             p.translate(displacement.x, displacement.y, displacement.z);
 
             if (hasImage) {
                 p.texture(bgImage);
                 p.tint(255, imgOp * 255);
-                p.stroke(255, 200); 
+                p.stroke(255, 200);
                 p.strokeWeight(2);
             } else {
                 p.fill(poly.color);
@@ -165,11 +155,8 @@ export class NoisePartition implements Sketch {
             p.beginShape();
             for (let v of poly.pts) {
                 if (hasImage) {
-                    // UV mapping centré
-                    const u = (v.x + p.width / 2) / p.width;
-                    const v_coord = (v.y + p.height / 2) / p.height;
-                    
-                    p.vertex(v.x, v.y, 0, u, v_coord);
+                    // UV Mapping standard 0-1
+                    p.vertex(v.x, v.y, v.x / p.width, v.y / p.height);
                 } else {
                     p.vertex(v.x, v.y);
                 }
@@ -184,7 +171,7 @@ export class NoisePartition implements Sketch {
     cleanup() { }
 }
 
-// --- LOCALLY USED GENERATORS ---
+// --- GENERATORS ---
 
 function randomWalkers(p: p5, startPoint: p5.Vector, segLen: number, maxSteps = 1000, audioNoiseMod = 0.0) {
     const seed = p.random(10000);
@@ -223,21 +210,14 @@ function genCurve(p: p5, startPoint: p5.Vector, audioMod: number) {
     let start = startPoint;
     let [fwd, bck] = randomWalkers(p, start, 20, 100, audioMod);
     let pts = [start];
-    
-    // Limites centrées (ex: -400 à +400 pour un écran de 800)
-    const minX = -p.width / 2;
-    const maxX = p.width / 2;
-    const minY = -p.height / 2;
-    const maxY = p.height / 2;
-
     for (let q of fwd) {
         pts.push(q.copy());
-        if (q.x < minX || q.y < minY || q.x > maxX || q.y > maxY) break;
+        if (q.x < 0 || q.y < 0 || q.x > p.width || q.y > p.height) break;
     }
     pts.reverse();
     for (let q of bck) {
         pts.push(q.copy());
-        if (q.x < minX || q.y < minY || q.x > maxX || q.y > maxY) break;
+        if (q.x < 0 || q.y < 0 || q.x > p.width || q.y > p.height) break;
     }
     return pts;
 }

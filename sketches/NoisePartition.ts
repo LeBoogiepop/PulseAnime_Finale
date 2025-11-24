@@ -14,151 +14,163 @@ const PARTITION_PALETTES = [
 ];
 
 export class NoisePartition implements Sketch {
-  id = 'partition';
-  name = 'Partition de Bruit';
-  audioReactivity = 'Les basses réinitialisent le canevas une fois terminé. L\'énergie globale déclenche les divisions. Les aigus font varier les couleurs.';
+    id = 'partition';
+    name = 'Partition de Bruit';
+    mode = 'WEBGL' as const;
+    audioReactivity = 'Les basses réinitialisent le canevas une fois terminé. L\'énergie globale déclenche les divisions. Les aigus font varier les couleurs.';
 
-  params: SketchParams = {
-      maxPolys: { type: 'slider', value: 150, min: 50, max: 300, step: 10, name: 'Max Partitions' },
-  };
+    params: SketchParams = {
+        maxPolys: { type: 'slider', value: 150, min: 50, max: 300, step: 10, name: 'Max Partitions' },
+        imageOpacity: { type: 'slider', value: 100, min: 0, max: 100, step: 1, name: 'Image Opacity' },
+        chaos: { type: 'slider', value: 50, min: 0, max: 200, step: 10, name: 'Explosion Chaos' },
+    };
 
-  private polygons: any[] = [];
-  private curveCount = 0;
-  private currentPalette: string[] = [];
-  private stagnationFrames = 0; // Compteur pour le reset auto
+    private polygons: any[] = [];
+    private curveCount = 0;
+    private currentPalette: string[] = [];
+    private stagnationFrames = 0;
 
-  setup(p: p5) {
-    p.noiseDetail(1, 0.5);
-    this.generate(p);
-  }
-
-  generate(p: p5) {
-    p.push();
-    p.colorMode(p.HSB, 1);
-    
-    this.curveCount = 0;
-    this.stagnationFrames = 0;
-    this.currentPalette = p.random(PARTITION_PALETTES);
-    const pts = [
-        p.createVector(0, 0), 
-        p.createVector(p.width, 0), 
-        p.createVector(p.width, p.height), 
-        p.createVector(0, p.height)
-    ];
-    
-    const initColor = p.color(p.random(this.currentPalette));
-    
-    const mbr = new MBR();
-    pts.forEach(pt => mbr.add(pt));
-
-    this.polygons = [{
-        pts,
-        mbr,
-        color: varyColor(p, initColor),
-        area: polygonArea(pts)
-    }];
-    
-    p.pop();
-  }
-
-  draw(p: p5, audio: AudioData, bgImage?: p5.Image | null) {
-    p.push();
-    p.colorMode(p.HSB, 1);
-    
-    if (bgImage) {
-         // Si image : Fond noir pour faire ressortir les éclats texturés
-         p.background(0);
-         p.textureMode(p.NORMAL); // UV mapping normalisé (0-1)
-    } else {
-         // Si pas d'image : Fond clair style papier
-         p.background(0, 0, 0.96); 
+    setup(p: p5) {
+        p.noiseDetail(1, 0.5);
+        this.generate(p);
     }
-    
-    const maxP = this.params.maxPolys.value;
 
-    // LOGIQUE DE RESET
-    // Si on a atteint le max de polygones
-    if (this.curveCount >= maxP) {
-        this.stagnationFrames++;
-        
-        // Reset automatique après ~1 seconde (60 frames) de stagnation
-        // OU Reset immédiat sur une grosse basse
-        if (this.stagnationFrames > 60 || audio.bass > 0.8) {
-            this.generate(p);
-        }
-    } else {
+    generate(p: p5) {
+        p.push();
+        p.colorMode(p.HSB, 1);
+
+        this.curveCount = 0;
         this.stagnationFrames = 0;
-    }
-    
-    const shouldSplit = this.curveCount < maxP && audio.energy > 0.25; 
+        this.currentPalette = p.random(PARTITION_PALETTES);
+        const pts = [
+            p.createVector(0, 0),
+            p.createVector(p.width, 0),
+            p.createVector(p.width, p.height),
+            p.createVector(0, p.height)
+        ];
 
-    if (shouldSplit) {
-        this.curveCount++;
-        this.polygons.sort((a, b) => b.area - a.area);
-        
-        const seedIndex = 0; 
-        let seedPoly = this.polygons[seedIndex];
-        
-        if (seedPoly) {
-            let seed = findSplitChordInteriorPoint(seedPoly.pts);
-            let curvePts = genCurve(p, seed, audio.mid); 
-            
-            for (let poly of this.polygons) {
-                if (poly.mbr.contains(seed) && pointInPolygon(seed, poly.pts)) {
-                    let parts = curvePolygonSplit(curvePts, poly.pts);
-                    if (parts.length === 2) {
-                        for (let part of parts) {
-                            let partMbr = new MBR();
-                            part.forEach((pt: p5.Vector) => partMbr.add(pt));
-                            
-                            this.polygons.push({
-                                pts: part,
-                                mbr: partMbr,
-                                color: varyColor(p, poly.color, 0.05 + audio.treble * 0.1),
-                                area: polygonArea(part)
-                            });
+        const initColor = p.color(p.random(this.currentPalette));
+
+        const mbr = new MBR();
+        pts.forEach(pt => mbr.add(pt));
+
+        // Initialize with random explosion vector for image mode
+        this.polygons = [{
+            pts,
+            mbr,
+            color: varyColor(p, initColor),
+            area: polygonArea(pts),
+            vel: p5.Vector.random3D().mult(p.random(0.5, 2))
+        }];
+
+        p.pop();
+    }
+
+    draw(p: p5, audio: AudioData, bgImage?: p5.Image | null) {
+        p.push();
+        // WEBGL Coordinate fix
+        p.translate(-p.width / 2, -p.height / 2);
+        p.colorMode(p.HSB, 1);
+
+        const imgOp = this.params.imageOpacity.value / 100;
+        const chaosVal = this.params.chaos.value;
+        const hasImage = bgImage && imgOp > 0.01;
+
+        if (hasImage) {
+            p.background(0);
+            p.textureMode(p.NORMAL);
+        } else {
+            p.background(0, 0, 0.96);
+        }
+
+        const maxP = this.params.maxPolys.value;
+
+        // LOGIQUE DE RESET
+        if (this.curveCount >= maxP) {
+            this.stagnationFrames++;
+            if (this.stagnationFrames > 60 || audio.bass > 0.85) {
+                this.generate(p);
+            }
+        } else {
+            this.stagnationFrames = 0;
+        }
+
+        const shouldSplit = this.curveCount < maxP && audio.energy > 0.25;
+
+        if (shouldSplit) {
+            this.curveCount++;
+            this.polygons.sort((a, b) => b.area - a.area);
+
+            const seedIndex = 0;
+            let seedPoly = this.polygons[seedIndex];
+
+            if (seedPoly) {
+                let seed = findSplitChordInteriorPoint(seedPoly.pts);
+                let curvePts = genCurve(p, seed, audio.mid);
+
+                for (let poly of this.polygons) {
+                    if (poly.mbr.contains(seed) && pointInPolygon(seed, poly.pts)) {
+                        let parts = curvePolygonSplit(curvePts, poly.pts);
+                        if (parts.length === 2) {
+                            for (let part of parts) {
+                                let partMbr = new MBR();
+                                part.forEach((pt: p5.Vector) => partMbr.add(pt));
+
+                                this.polygons.push({
+                                    pts: part,
+                                    mbr: partMbr,
+                                    color: varyColor(p, poly.color, 0.05 + audio.treble * 0.1),
+                                    area: polygonArea(part),
+                                    vel: p5.Vector.random3D().mult(p.random(0.5, 2)) // Inherit velocity
+                                });
+                            }
+                            this.polygons.splice(this.polygons.indexOf(poly), 1);
+                            break;
                         }
-                        this.polygons.splice(this.polygons.indexOf(poly), 1);
-                        break;
                     }
                 }
             }
         }
-    }
-    
-    p.stroke(0, 0, 1, 0.8); 
-    p.strokeWeight(1.5);
-    
-    for (let poly of this.polygons) {
-        if (bgImage) {
-            // Mode Image : On texture avec l'image de fond
-            // On applique une légère teinte colorée basée sur la palette pour garder le style
-            const h = p.hue(poly.color);
-            const s = p.saturation(poly.color);
-            // Saturation réduite pour bien voir l'image, luminosité max
-            p.tint(h, s * 0.4, 1, 1);
-            p.texture(bgImage);
-        } else {
-            // Mode Standard : Couleur pleine
-            p.fill(poly.color);
+
+        // Render Loop
+        for (let poly of this.polygons) {
+            p.push();
+
+            if (hasImage) {
+                // --- IMAGE MODE (EXPLOSIVE) ---
+                const explosion = audio.bass * chaosVal;
+                const displacement = poly.vel.copy().mult(explosion);
+                p.translate(displacement.x, displacement.y, displacement.z);
+
+                p.texture(bgImage);
+                p.tint(255, imgOp * 255);
+                p.stroke(255, 200);
+                p.strokeWeight(2);
+            } else {
+                // --- NORMAL MODE (STATIC) ---
+                // No translation/explosion here
+                p.fill(poly.color);
+                p.stroke(0, 0, 1, 0.8); // Original subtle stroke
+                p.strokeWeight(1.5);
+            }
+
+            p.beginShape();
+            for (let v of poly.pts) {
+                if (hasImage) {
+                    // UV Mapping for WEBGL
+                    p.vertex(v.x, v.y, 0, v.x / p.width, v.y / p.height);
+                } else {
+                    p.vertex(v.x, v.y);
+                }
+            }
+            p.endShape(p.CLOSE);
+            p.pop();
         }
 
-        p.beginShape();
-        for (let v of poly.pts) {
-            if (bgImage) {
-                // Mapping UV basé sur la position relative à l'écran
-                p.vertex(v.x, v.y, v.x / p.width, v.y / p.height);
-            } else {
-                p.vertex(v.x, v.y);
-            }
-        }
-        p.endShape(p.CLOSE);
+        p.pop();
     }
-    
-    p.pop();
-  }
-  
-  cleanup() {}
+
+    cleanup() { }
 }
 
 // --- LOCALLY USED GENERATORS ---
@@ -166,13 +178,13 @@ export class NoisePartition implements Sketch {
 function randomWalkers(p: p5, startPoint: p5.Vector, segLen: number, maxSteps = 1000, audioNoiseMod = 0.0) {
     const seed = p.random(10000);
     const noiseScale = 0.1;
-    
-    const makeWalker = (dAng: number, sgn: number) => function*() {
+
+    const makeWalker = (dAng: number, sgn: number) => function* () {
         let pos = startPoint.copy();
         let q = startPoint.copy();
         const hgt = (x: number, y: number) => gradNoise(x * noiseScale, y * noiseScale, seed + audioNoiseMod);
         const nrm = (x: number, y: number) => p.createVector(1, 0).rotate(hgt(x, y) * p.TWO_PI);
-        
+
         for (let i = 0; i < maxSteps; i++) {
             const v = nrm(q.x, q.y).rotate(dAng);
             q.add(v);
@@ -180,7 +192,7 @@ function randomWalkers(p: p5, startPoint: p5.Vector, segLen: number, maxSteps = 
             yield pos;
         }
     }
-    
+
     let angSeed = p.random(p.TWO_PI);
     return [makeWalker(angSeed, 1)(), makeWalker(angSeed + p.PI, 1)()];
 }
@@ -190,15 +202,15 @@ function varyColor(p: p5, c: p5.Color, amt = 0.1) {
     let s = p.saturation(c);
     let b = p.brightness(c);
     return p.color(
-        p.constrain(h + p.random(-amt, amt), 0, 1), 
-        p.constrain(s + p.random(-amt, amt), 0, 1), 
+        p.constrain(h + p.random(-amt, amt), 0, 1),
+        p.constrain(s + p.random(-amt, amt), 0, 1),
         p.constrain(b + p.random(-amt, amt), 0, 1)
     );
 }
 
 function genCurve(p: p5, startPoint: p5.Vector, audioMod: number) {
     let start = startPoint;
-    let [fwd, bck] = randomWalkers(p, start, 20, 100, audioMod); 
+    let [fwd, bck] = randomWalkers(p, start, 20, 100, audioMod);
     let pts = [start];
     for (let q of fwd) {
         pts.push(q.copy());
