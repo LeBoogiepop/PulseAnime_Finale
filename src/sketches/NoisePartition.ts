@@ -16,6 +16,7 @@ const PARTITION_PALETTES = [
 export class NoisePartition implements Sketch {
     id = 'partition';
     name = 'Partition de Bruit';
+    mode = 'WEBGL' as const;
     audioReactivity = 'Les basses réinitialisent le canevas une fois terminé. L\'énergie globale déclenche les divisions. Les aigus font varier les couleurs.';
 
     params: SketchParams = {
@@ -42,9 +43,6 @@ export class NoisePartition implements Sketch {
         this.stagnationFrames = 0;
         this.currentPalette = p.random(PARTITION_PALETTES);
 
-        // CORRECTION MAJEURE : Génération centrée sur l'origine (0,0)
-        // Au lieu de 0 à width, on va de -width/2 à width/2.
-        // C'est le standard pour WebGL.
         const w = p.width;
         const h = p.height;
         const hw = w / 2;
@@ -168,9 +166,6 @@ export class NoisePartition implements Sketch {
             for (let v of poly.pts) {
                 if (hasImage) {
                     // UV mapping centré
-                    // v.x va de -width/2 à +width/2.
-                    // On doit normaliser ça de 0 à 1.
-                    // Formule : (valeur + moitié) / taille totale
                     const u = (v.x + p.width / 2) / p.width;
                     const v_coord = (v.y + p.height / 2) / p.height;
                     

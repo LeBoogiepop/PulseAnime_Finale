@@ -147,6 +147,8 @@ const fragShader = `#version 300 es
 export class TravelShader implements Sketch {
   id = 'travel';
   name = 'Voyage';
+  mode = 'WEBGL' as const;
+  audioReactivity = 'L\'énergie sonore déforme l\'espace-temps de l\'image (Distortion). Les basses accélèrent la vitesse de défilement.';
   
   params: SketchParams = {
       speed: { type: 'slider', value: 0.003, min: 0.0, max: 0.02, step: 0.0001, name: 'Vitesse Voyage' },

@@ -59,7 +59,6 @@ const btnAbout = document.getElementById('btn-about') as HTMLButtonElement;
 const closeAbout = document.getElementById('close-about') as HTMLButtonElement;
 
 const settingsPanel = document.getElementById('settings-panel') as HTMLDivElement;
-// btnCustomize removed
 const closeSettings = document.getElementById('close-settings') as HTMLButtonElement;
 
 // Settings Content
@@ -83,35 +82,35 @@ const generateSettingsUI = () => {
   resetBtn.innerText = "REBOOT SYSTEM";
   resetBtn.className = "w-full py-3 bg-red-900/20 border border-red-500/30 text-red-500 text-xs font-bold tracking-[0.2em] hover:bg-red-600 hover:text-white transition-all uppercase hover:shadow-lg";
   resetBtn.onclick = () => {
-      if (p5Instance) {
-          currentSketch.setup(p5Instance);
-          // Slight visual feedback on reboot
-          const canvas = document.querySelector('canvas');
-          if(canvas) {
-              canvas.style.filter = 'brightness(1.5) blur(2px)';
-              setTimeout(() => { canvas.style.filter = 'none'; }, 100);
-          }
+    if (p5Instance) {
+      currentSketch.setup(p5Instance);
+      // Slight visual feedback on reboot
+      const canvas = document.querySelector('canvas');
+      if(canvas) {
+        canvas.style.filter = 'brightness(1.5) blur(2px)';
+        setTimeout(() => { canvas.style.filter = 'none'; }, 100);
       }
+    }
   };
   resetSection.appendChild(resetBtn);
   settingsContent.appendChild(resetSection);
 
   // --- AUDIO REACTIVITY INFO ---
   if (currentSketch.audioReactivity) {
-      const infoBox = document.createElement('div');
-      infoBox.className = "mb-8 p-4 border border-white/10 bg-white/5";
-      
-      const infoTitle = document.createElement('div');
-      infoTitle.className = "text-[10px] text-gray-400 font-mono uppercase tracking-widest mb-2 flex items-center gap-2";
-      infoTitle.innerHTML = `<span class="w-2 h-2 bg-white rounded-full animate-pulse"></span> IMPACT AUDIO`;
-      
-      const infoText = document.createElement('p');
-      infoText.className = "text-xs text-gray-300 font-mono leading-relaxed";
-      infoText.innerText = currentSketch.audioReactivity;
-      
-      infoBox.appendChild(infoTitle);
-      infoBox.appendChild(infoText);
-      settingsContent.appendChild(infoBox);
+    const infoBox = document.createElement('div');
+    infoBox.className = "mb-8 p-4 border border-white/10 bg-white/5";
+    
+    const infoTitle = document.createElement('div');
+    infoTitle.className = "text-[10px] text-gray-400 font-mono uppercase tracking-widest mb-2 flex items-center gap-2";
+    infoTitle.innerHTML = `<span class="w-2 h-2 bg-white rounded-full animate-pulse"></span> IMPACT AUDIO`;
+    
+    const infoText = document.createElement('p');
+    infoText.className = "text-xs text-gray-300 font-mono leading-relaxed";
+    infoText.innerText = currentSketch.audioReactivity;
+    
+    infoBox.appendChild(infoTitle);
+    infoBox.appendChild(infoText);
+    settingsContent.appendChild(infoBox);
   }
 
   if (!currentSketch.params) {
@@ -126,173 +125,168 @@ const generateSettingsUI = () => {
     const param = currentSketch.params![key];
     
     if (param.type === 'slider') {
-        const container = document.createElement('div');
-        container.className = 'group mb-6';
+      const container = document.createElement('div');
+      container.className = 'group mb-6';
 
-        // Header row with Label and Value Box
-        const header = document.createElement('div');
-        header.className = 'flex justify-between items-end mb-2';
+      // Header row with Label and Value Box
+      const header = document.createElement('div');
+      header.className = 'flex justify-between items-end mb-2';
 
-        const label = document.createElement('label');
-        label.className = 'text-[10px] text-gray-400 font-mono uppercase tracking-widest group-hover:text-white transition-colors';
-        label.innerText = param.name;
+      const label = document.createElement('label');
+      label.className = 'text-[10px] text-gray-400 font-mono uppercase tracking-widest group-hover:text-white transition-colors';
+      label.innerText = param.name;
 
-        const valDisplay = document.createElement('div');
-        // Minimalist value display: White text, clean
-        valDisplay.className = 'text-xs font-bold text-white font-mono px-2 py-1 min-w-[40px] text-right';
-        valDisplay.innerText = Number(param.value).toFixed(2);
+      const valDisplay = document.createElement('div');
+      // Minimalist value display: White text, clean
+      valDisplay.className = 'text-xs font-bold text-white font-mono px-2 py-1 min-w-[40px] text-right';
+      valDisplay.innerText = Number(param.value).toFixed(2);
 
-        header.appendChild(label);
-        header.appendChild(valDisplay);
+      header.appendChild(label);
+      header.appendChild(valDisplay);
 
-        // Slider Input
-        const input = document.createElement('input');
-        input.type = 'range';
-        input.min = String(param.min);
-        input.max = String(param.max);
-        input.step = String(param.step);
-        input.value = String(param.value);
+      // Slider Input
+      const input = document.createElement('input');
+      input.type = 'range';
+      input.min = String(param.min);
+      input.max = String(param.max);
+      input.step = String(param.step);
+      input.value = String(param.value);
+      
+      // Function to update gradient fill - MONOCHROME
+      const updateGradient = (val: number) => {
+        const min = param.min || 0;
+        const max = param.max || 100;
+        const percentage = ((val - min) / (max - min)) * 100;
+        // White fill, Dark Gray background
+        input.style.background = `linear-gradient(to right, #ffffff ${percentage}%, #333333 ${percentage}%)`;
+      };
+      
+      // Initial update
+      updateGradient(param.value);
+
+      input.oninput = (e: any) => {
+        const val = parseFloat(e.target.value);
+        param.value = val;
+        valDisplay.innerText = val.toFixed(2);
+        updateGradient(val);
         
-        // Function to update gradient fill - MONOCHROME
-        const updateGradient = (val: number) => {
-            const min = param.min || 0;
-            const max = param.max || 100;
-            const percentage = ((val - min) / (max - min)) * 100;
-            // White fill, Dark Gray background
-            input.style.background = `linear-gradient(to right, #ffffff ${percentage}%, #333333 ${percentage}%)`;
-        };
-        
-        // Initial update
-        updateGradient(param.value);
-
-        input.oninput = (e: any) => {
-            const val = parseFloat(e.target.value);
-            param.value = val;
-            valDisplay.innerText = val.toFixed(2);
-            updateGradient(val);
-            
-            if (param.onChange) param.onChange(val);
-            
-            // Handle special resets
-            if (key === 'density' && currentSketch.id === 'silence' && p5Instance) {
-                 currentSketch.setup(p5Instance);
-            }
-        };
-        
-        container.appendChild(header);
-        container.appendChild(input);
-        settingsContent.appendChild(container);
+        if (param.onChange) param.onChange(val);
+      };
+      
+      container.appendChild(header);
+      container.appendChild(input);
+      settingsContent.appendChild(container);
 
     } else if (param.type === 'color') {
-        const container = document.createElement('div');
-        container.className = 'flex flex-col gap-2 mb-6';
-        
-        const label = document.createElement('span');
-        label.className = "text-[10px] text-gray-400 font-mono uppercase tracking-widest";
-        label.innerText = param.name;
-        
-        const inputWrapper = document.createElement('div');
-        inputWrapper.className = "relative h-8 w-full border border-white/20 hover:border-white transition-colors bg-white/5";
-        
-        const input = document.createElement('input');
-        input.type = 'color';
-        input.value = param.value;
-        input.className = "absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10";
-        
-        const colorPreview = document.createElement('div');
-        colorPreview.className = "absolute inset-0 w-full h-full pointer-events-none";
+      const container = document.createElement('div');
+      container.className = 'flex flex-col gap-2 mb-6';
+      
+      const label = document.createElement('span');
+      label.className = "text-[10px] text-gray-400 font-mono uppercase tracking-widest";
+      label.innerText = param.name;
+      
+      const inputWrapper = document.createElement('div');
+      inputWrapper.className = "relative h-8 w-full border border-white/20 hover:border-white transition-colors bg-white/5";
+      
+      const input = document.createElement('input');
+      input.type = 'color';
+      input.value = param.value;
+      input.className = "absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10";
+      
+      const colorPreview = document.createElement('div');
+      colorPreview.className = "absolute inset-0 w-full h-full pointer-events-none";
+      colorPreview.style.backgroundColor = param.value;
+      
+      input.oninput = (e: any) => {
+        param.value = e.target.value;
         colorPreview.style.backgroundColor = param.value;
-        
-        input.oninput = (e: any) => {
-            param.value = e.target.value;
-            colorPreview.style.backgroundColor = param.value;
-            if (param.onChange) param.onChange(param.value);
-        };
-        
-        inputWrapper.appendChild(input);
-        inputWrapper.appendChild(colorPreview);
-        
-        container.appendChild(label);
-        container.appendChild(inputWrapper);
-        settingsContent.appendChild(container);
+        if (param.onChange) param.onChange(param.value);
+      };
+      
+      inputWrapper.appendChild(input);
+      inputWrapper.appendChild(colorPreview);
+      
+      container.appendChild(label);
+      container.appendChild(inputWrapper);
+      settingsContent.appendChild(container);
     }
   });
 };
 
 // --- HELPER: PRESETS SYSTEM ---
 const loadPresetsList = () => {
-    presetsList.innerHTML = '';
-    const prefix = `pulseanime_preset_${currentSketch.id}_`;
-    
-    for(let i=0; i<localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && key.startsWith(prefix)) {
-            const name = key.replace(prefix, '');
-            
-            const item = document.createElement('div');
-            item.className = 'flex justify-between items-center bg-white/5 p-3 border border-white/10 hover:border-white/30 transition-colors group';
-            
-            const label = document.createElement('span');
-            label.innerText = name;
-            label.className = 'text-[10px] text-gray-300 font-mono uppercase tracking-wide';
-            
-            const actions = document.createElement('div');
-            actions.className = 'flex gap-3';
-            
-            const loadBtn = document.createElement('button');
-            loadBtn.innerText = 'LOAD';
-            loadBtn.className = 'text-[9px] text-white font-bold opacity-50 group-hover:opacity-100 transition-opacity hover:underline';
-            loadBtn.onclick = () => {
-                try {
-                    const saved = JSON.parse(localStorage.getItem(key)!);
-                    // Apply params
-                    if (currentSketch.params) {
-                        Object.keys(saved).forEach(k => {
-                           if(currentSketch.params![k]) currentSketch.params![k].value = saved[k];
-                        });
-                        generateSettingsUI();
-                        // Force re-setup if needed
-                        if (p5Instance) currentSketch.setup(p5Instance);
-                    }
-                } catch(e) { console.error(e); }
-            };
+  presetsList.innerHTML = '';
+  const prefix = `pulseanime_preset_${currentSketch.id}_`;
+  
+  for(let i=0; i<localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key.startsWith(prefix)) {
+      const name = key.replace(prefix, '');
+      
+      const item = document.createElement('div');
+      item.className = 'flex justify-between items-center bg-white/5 p-3 border border-white/10 hover:border-white/30 transition-colors group';
+      
+      const label = document.createElement('span');
+      label.innerText = name;
+      label.className = 'text-[10px] text-gray-300 font-mono uppercase tracking-wide';
+      
+      const actions = document.createElement('div');
+      actions.className = 'flex gap-3';
+      
+      const loadBtn = document.createElement('button');
+      loadBtn.innerText = 'LOAD';
+      loadBtn.className = 'text-[9px] text-white font-bold opacity-50 group-hover:opacity-100 transition-opacity hover:underline';
+      loadBtn.onclick = () => {
+        try {
+          const saved = JSON.parse(localStorage.getItem(key)!);
+          // Apply params
+          if (currentSketch.params) {
+            Object.keys(saved).forEach(k => {
+               if(currentSketch.params![k]) currentSketch.params![k].value = saved[k];
+            });
+            generateSettingsUI();
+            // Force re-setup if needed
+            if (p5Instance) currentSketch.setup(p5Instance);
+          }
+        } catch(e) { console.error(e); }
+      };
 
-            const delBtn = document.createElement('button');
-            delBtn.innerText = 'DEL';
-            delBtn.className = 'text-[9px] text-red-500 hover:text-red-300 font-bold opacity-50 group-hover:opacity-100 transition-opacity';
-            delBtn.onclick = () => {
-                localStorage.removeItem(key);
-                loadPresetsList();
-            };
-            
-            actions.appendChild(loadBtn);
-            actions.appendChild(delBtn);
-            item.appendChild(label);
-            item.appendChild(actions);
-            presetsList.appendChild(item);
-        }
+      const delBtn = document.createElement('button');
+      delBtn.innerText = 'DEL';
+      delBtn.className = 'text-[9px] text-red-500 hover:text-red-300 font-bold opacity-50 group-hover:opacity-100 transition-opacity';
+      delBtn.onclick = () => {
+        localStorage.removeItem(key);
+        loadPresetsList();
+      };
+      
+      actions.appendChild(loadBtn);
+      actions.appendChild(delBtn);
+      item.appendChild(label);
+      item.appendChild(actions);
+      presetsList.appendChild(item);
     }
+  }
 };
 
 savePresetBtn.onclick = () => {
-    const name = presetNameInput.value.trim();
-    if(!name || !currentSketch.params) return;
-    
-    const data: any = {};
-    Object.keys(currentSketch.params).forEach(k => {
-        data[k] = currentSketch.params![k].value;
-    });
-    
-    localStorage.setItem(`pulseanime_preset_${currentSketch.id}_${name}`, JSON.stringify(data));
-    presetNameInput.value = '';
-    loadPresetsList();
+  const name = presetNameInput.value.trim();
+  if(!name || !currentSketch.params) return;
+  
+  const data: any = {};
+  Object.keys(currentSketch.params).forEach(k => {
+    data[k] = currentSketch.params![k].value;
+  });
+  
+  localStorage.setItem(`pulseanime_preset_${currentSketch.id}_${name}`, JSON.stringify(data));
+  presetNameInput.value = '';
+  loadPresetsList();
 };
 
 // --- SKETCH SWITCHING LOGIC ---
 const switchSketch = (idx: number) => {
   // Logic: If clicking the currently active sketch, toggle back to Landing (-1)
   if (currentSketchIndex === idx && idx !== -1) {
-      idx = -1;
+    idx = -1;
   }
 
   // If already gallery and requesting gallery, do nothing
@@ -300,16 +294,16 @@ const switchSketch = (idx: number) => {
 
   // Determine next sketch
   if (idx === -1) {
-      // Go to Gallery
-      currentSketchIndex = -1;
-      currentSketch = landingSketch;
+    // Go to Gallery
+    currentSketchIndex = -1;
+    currentSketch = landingSketch;
   } else {
-      currentSketchIndex = idx;
-      currentSketch = availableSketches[idx];
+    currentSketchIndex = idx;
+    currentSketch = availableSketches[idx];
   }
 
   // Determine Renderer
-const nextRendererMode = (currentSketch.id === 'travel' || currentSketch.id === 'landing' || currentSketch.id === 'partition') ? 'WEBGL' : 'P2D';;
+  const nextRendererMode = currentSketch.mode || 'P2D';
 
   // Update UI - MONOCHROME STYLES
   Array.from(controlsContainer.children).forEach((btn: any, i) => {
@@ -340,17 +334,17 @@ const nextRendererMode = (currentSketch.id === 'travel' || currentSketch.id === 
   } else {
     if (currentSketch.cleanup) currentSketch.cleanup();
     if (p5Instance) {
-       p5Instance.clear();
-       p5Instance.resetMatrix();
-       // Explicitly reset shader when reusing WebGL context
-       if (currentRendererMode === 'WEBGL') {
-          // @ts-ignore
-          if (p5Instance.resetShader) p5Instance.resetShader();
-       } else {
-          p5Instance.imageMode(p5Instance.CORNER);
-          p5Instance.rectMode(p5Instance.CORNER);
-       }
-       currentSketch.setup(p5Instance);
+      p5Instance.clear();
+      p5Instance.resetMatrix();
+      // Explicitly reset shader when reusing WebGL context
+      if (currentRendererMode === 'WEBGL') {
+        // @ts-ignore
+        if (p5Instance.resetShader) p5Instance.resetShader();
+      } else {
+        p5Instance.imageMode(p5Instance.CORNER);
+        p5Instance.rectMode(p5Instance.CORNER);
+      }
+      currentSketch.setup(p5Instance);
     }
   }
 };
@@ -370,73 +364,73 @@ const initUI = () => {
   // Global Sensitivity
   // Initialize gradient for the global slider (Monochrome)
   const updateSensGradient = (val: number) => {
-      const min = 0.1;
-      const max = 3.0;
-      const percentage = ((val - min) / (max - min)) * 100;
-      sensitivitySlider.style.background = `linear-gradient(to right, #ffffff ${percentage}%, #333333 ${percentage}%)`;
+    const min = 0.1;
+    const max = 3.0;
+    const percentage = ((val - min) / (max - min)) * 100;
+    sensitivitySlider.style.background = `linear-gradient(to right, #ffffff ${percentage}%, #333333 ${percentage}%)`;
   };
   updateSensGradient(1.0); // Init value
 
   sensitivitySlider.oninput = (e: any) => {
-      const val = parseFloat(e.target.value);
-      audioEngine.sensitivity = val;
-      sensitivityDisplay.innerText = val.toFixed(1);
-      updateSensGradient(val);
+    const val = parseFloat(e.target.value);
+    audioEngine.sensitivity = val;
+    sensitivityDisplay.innerText = val.toFixed(1);
+    updateSensGradient(val);
   };
 
   // Mic Toggle Logic (Keeping Red for ON AIR as requested)
   micBtn.onclick = async () => {
     try {
-        const isActive = await audioEngine.toggleMicrophone();
-        if (isActive) {
-          micBtn.innerText = "ON AIR";
-          // Active Red
-          micBtn.classList.add('bg-red-900/20', 'text-red-500', 'border-red-500', 'shadow-[0_0_10px_rgba(255,0,0,0.4)]');
-          micBtn.classList.remove('bg-white/5', 'border-white/20');
-        } else {
-          micBtn.innerText = "MICRO OFF";
-          micBtn.classList.remove('bg-red-900/20', 'text-red-500', 'border-red-500', 'shadow-[0_0_10px_rgba(255,0,0,0.4)]');
-          micBtn.classList.add('bg-white/5', 'text-white', 'border-white/20');
-        }
+      const isActive = await audioEngine.toggleMicrophone();
+      if (isActive) {
+        micBtn.innerText = "ON AIR";
+        // Active Red
+        micBtn.classList.add('bg-red-900/20', 'text-red-500', 'border-red-500', 'shadow-[0_0_10px_rgba(255,0,0,0.4)]');
+        micBtn.classList.remove('bg-white/5', 'border-white/20');
+      } else {
+        micBtn.innerText = "MICRO OFF";
+        micBtn.classList.remove('bg-red-900/20', 'text-red-500', 'border-red-500', 'shadow-[0_0_10px_rgba(255,0,0,0.4)]');
+        micBtn.classList.add('bg-white/5', 'text-white', 'border-white/20');
+      }
     } catch (e) {
-        console.error("Mic Error", e);
-        micBtn.innerText = "ERR";
+      console.error("Mic Error", e);
+      micBtn.innerText = "ERR";
     }
   };
   
   // Audio File Upload
   audioInput.onchange = async (e: any) => {
-      const file = e.target.files[0];
-      if (file) {
-          const arrayBuffer = await file.arrayBuffer();
-          audioEngine.playFile(arrayBuffer);
-          audioControls.classList.remove('hidden');
-          micBtn.innerText = "MICRO OFF";
-          micBtn.classList.remove('bg-red-900/20', 'text-red-500', 'border-red-500');
-          micBtn.classList.add('bg-white/5', 'text-white', 'border-white/20');
-      }
+    const file = e.target.files[0];
+    if (file) {
+      const arrayBuffer = await file.arrayBuffer();
+      audioEngine.playFile(arrayBuffer);
+      audioControls.classList.remove('hidden');
+      micBtn.innerText = "MICRO OFF";
+      micBtn.classList.remove('bg-red-900/20', 'text-red-500', 'border-red-500');
+      micBtn.classList.add('bg-white/5', 'text-white', 'border-white/20');
+    }
   };
 
   playAudioBtn.onclick = () => {
-      if (audioEngine.context && audioEngine.context.state === 'suspended') {
-          audioEngine.context.resume();
-      }
+    if (audioEngine.context && audioEngine.context.state === 'suspended') {
+      audioEngine.context.resume();
+    }
   };
 
   stopAudioBtn.onclick = () => {
-      audioEngine.stopFile();
-      audioControls.classList.add('hidden');
+    audioEngine.stopFile();
+    audioControls.classList.add('hidden');
   };
 
   // BG Image Upload
   bgInput.onchange = (e: any) => {
-      const file = e.target.files[0];
-      if (file && p5Instance) {
-          const url = URL.createObjectURL(file);
-          p5Instance.loadImage(url, (img) => {
-              uploadedBgImage = img;
-          });
-      }
+    const file = e.target.files[0];
+    if (file && p5Instance) {
+      const url = URL.createObjectURL(file);
+      p5Instance.loadImage(url, (img) => {
+        uploadedBgImage = img;
+      });
+    }
   };
 
   // --- Modal Logic ---
@@ -461,7 +455,7 @@ const initUI = () => {
       settingsPanel.classList.add('-translate-x-full');
     }
   };
-  // Removed btnCustomize listener, access via 'R'
+  
   closeSettings.onclick = toggleSettings;
 
   // Tabs
@@ -488,26 +482,30 @@ const initUI = () => {
       uiLayer.style.opacity = uiLayer.style.opacity === '0' ? '1' : '0';
     }
     if (e.key === ' ') {
-        if (p5Instance && p5Instance.isLooping()) p5Instance.noLoop();
-        else if (p5Instance) p5Instance.loop();
+      if (p5Instance && p5Instance.isLooping()) p5Instance.noLoop();
+      else if (p5Instance) p5Instance.loop();
     }
     if (e.key === 'm') {
-        micBtn.click();
+      micBtn.click();
     }
     if (e.key === 'r' || e.key === 'R') {
       toggleSettings();
     }
     if (e.key === 'ArrowRight') {
-      if (currentSketchIndex !== -1) {
-         const nextIdx = (currentSketchIndex + 1) % availableSketches.length;
-         switchSketch(nextIdx);
+      if (currentSketchIndex === -1) {
+        switchSketch(0);
+      } else {
+        const nextIdx = (currentSketchIndex + 1) % availableSketches.length;
+        switchSketch(nextIdx);
       }
     }
     if (e.key === 'ArrowLeft') {
-       if (currentSketchIndex !== -1) {
+      if (currentSketchIndex === -1) {
+        switchSketch(availableSketches.length - 1);
+      } else {
         const prevIdx = (currentSketchIndex - 1 + availableSketches.length) % availableSketches.length;
         switchSketch(prevIdx);
-       }
+      }
     }
     if (currentSketch.keyPressed && p5Instance) currentSketch.keyPressed(p5Instance, e.key);
   });
@@ -545,36 +543,36 @@ const sketch = (p: p5) => {
     
     // Draw Spectrum Visualization (2D Context on top overlay)
     if (spectrumCtx && spectrumCanvas) {
-        const w = spectrumCanvas.width;
-        const h = spectrumCanvas.height;
-        spectrumCtx.clearRect(0, 0, w, h);
+      const w = spectrumCanvas.width;
+      const h = spectrumCanvas.height;
+      spectrumCtx.clearRect(0, 0, w, h);
+      
+      // Check if we have spectrum data
+      if (audio.spectrum && audio.spectrum.length > 0) {
+        const bars = 32;
+        const barW = w / bars;
         
-        // Check if we have spectrum data
-        if (audio.spectrum && audio.spectrum.length > 0) {
-            const bars = 32;
-            const barW = w / bars;
-            
-            // Use a gradient (Keeping as requested by user "don't touch")
-            const grad = spectrumCtx.createLinearGradient(0, 0, w, 0);
-            grad.addColorStop(0, '#00FFFF');
-            grad.addColorStop(0.5, '#FFFFFF');
-            grad.addColorStop(1, '#FF00FF');
-            spectrumCtx.fillStyle = grad;
-            
-            // Draw simplified bars from spectrum (skip first few low end)
-            for(let i=0; i<bars; i++) {
-                const idx = Math.floor(i * 1.5); // Skip some bins
-                const val = audio.spectrum[idx] || 0;
-                const percent = val / 255;
-                const barH = Math.max(2, percent * h);
-                
-                spectrumCtx.fillRect(i * barW, h - barH, barW - 2, barH);
-            }
+        // Use a gradient (Keeping as requested by user "don't touch")
+        const grad = spectrumCtx.createLinearGradient(0, 0, w, 0);
+        grad.addColorStop(0, '#00FFFF');
+        grad.addColorStop(0.5, '#FFFFFF');
+        grad.addColorStop(1, '#FF00FF');
+        spectrumCtx.fillStyle = grad;
+        
+        // Draw simplified bars from spectrum (skip first few low end)
+        for(let i=0; i<bars; i++) {
+          const idx = Math.floor(i * 1.5); // Skip some bins
+          const val = audio.spectrum[idx] || 0;
+          const percent = val / 255;
+          const barH = Math.max(2, percent * h);
+          
+          spectrumCtx.fillRect(i * barW, h - barH, barW - 2, barH);
         }
+      }
     }
 
     if (fpsCounter && p.frameCount % 30 === 0) {
-        fpsCounter.innerText = `${Math.round(p.frameRate())} FPS`;
+      fpsCounter.innerText = `${Math.round(p.frameRate())} FPS`;
     }
   };
 
@@ -584,7 +582,7 @@ const sketch = (p: p5) => {
   };
   
   p.mousePressed = () => {
-      if (currentSketch.mousePressed) currentSketch.mousePressed(p);
+    if (currentSketch.mousePressed) currentSketch.mousePressed(p);
   }
 };
 
