@@ -147,11 +147,12 @@ const fragShader = `#version 300 es
 export class TravelShader implements Sketch {
   id = 'travel';
   name = 'Voyage';
+  mode = 'WEBGL' as const;
   audioReactivity = 'L\'énergie sonore déforme l\'espace-temps de l\'image (Distortion). Les basses accélèrent la vitesse de défilement.';
-  
+
   params: SketchParams = {
-      speed: { type: 'slider', value: 0.003, min: 0.0, max: 0.02, step: 0.0001, name: 'Vitesse Voyage' },
-      baseDistortion: { type: 'slider', value: 3.0, min: 0.0, max: 10.0, step: 0.1, name: 'Distortion Base' }
+    speed: { type: 'slider', value: 0.003, min: 0.0, max: 0.02, step: 0.0001, name: 'Vitesse Voyage' },
+    baseDistortion: { type: 'slider', value: 3.0, min: 0.0, max: 10.0, step: 0.1, name: 'Distortion Base' }
   };
 
   private shaderProg: p5.Shader | null = null;
@@ -161,46 +162,46 @@ export class TravelShader implements Sketch {
 
   setup(p: p5) {
     this.shaderProg = p.createShader(vertShader, fragShader);
-    
+
     const urls = [
       "https://raw.githubusercontent.com/ZRNOF/.ink/main/Package/Rain_Window_01.jpg",
       "https://raw.githubusercontent.com/ZRNOF/.ink/main/Package/Tunnel_01.jpg",
       "https://raw.githubusercontent.com/ZRNOF/.ink/main/Package/The_Dome_of_Light_02.jpg"
     ];
-    
+
     this.imgs = urls.map(url => p.loadImage(url) as unknown as p5.Image);
   }
-  
+
   draw(p: p5, audio: AudioData, bgImage?: p5.Image | null) {
     if (!this.shaderProg) return;
-    
+
     const baseSpd = this.params.speed.value;
     const dist = this.params.baseDistortion.value;
 
-    const speed = baseSpd + audio.bass * 0.05; 
+    const speed = baseSpd + audio.bass * 0.05;
     this.deltaX += speed;
     this.deltaY += speed * 0.5;
 
     p.shader(this.shaderProg);
-    
+
     this.shaderProg.setUniform('iTime', p.frameCount);
     this.shaderProg.setUniform('iDelta', [this.deltaX, this.deltaY]);
-    this.shaderProg.setUniform('iAudio', audio.energy); 
+    this.shaderProg.setUniform('iAudio', audio.energy);
     this.shaderProg.setUniform('uDistStrength', dist);
-    
+
     if (bgImage) {
-        this.shaderProg.setUniform('iImage0', bgImage);
-        this.shaderProg.setUniform('iImage1', bgImage);
-        this.shaderProg.setUniform('iImage2', bgImage);
+      this.shaderProg.setUniform('iImage0', bgImage);
+      this.shaderProg.setUniform('iImage1', bgImage);
+      this.shaderProg.setUniform('iImage2', bgImage);
     } else {
-        if (this.imgs[0] && this.imgs[0].width > 1) this.shaderProg.setUniform('iImage0', this.imgs[0]);
-        if (this.imgs[1] && this.imgs[1].width > 1) this.shaderProg.setUniform('iImage1', this.imgs[1]);
-        if (this.imgs[2] && this.imgs[2].width > 1) this.shaderProg.setUniform('iImage2', this.imgs[2]);
+      if (this.imgs[0] && this.imgs[0].width > 1) this.shaderProg.setUniform('iImage0', this.imgs[0]);
+      if (this.imgs[1] && this.imgs[1].width > 1) this.shaderProg.setUniform('iImage1', this.imgs[1]);
+      if (this.imgs[2] && this.imgs[2].width > 1) this.shaderProg.setUniform('iImage2', this.imgs[2]);
     }
-    
+
     p.noStroke();
-    p.rect(-p.width/2, -p.height/2, p.width, p.height); 
+    p.rect(-p.width / 2, -p.height / 2, p.width, p.height);
   }
-  
-  cleanup() {}
+
+  cleanup() { }
 }

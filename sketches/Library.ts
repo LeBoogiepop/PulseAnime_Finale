@@ -1,6 +1,7 @@
 
 import p5 from 'p5';
 import { Sketch, AudioData, PALETTES, SketchParams } from '../types';
+import { t } from '../i18n';
 
 const getPalette = (idx: number) => PALETTES[idx % PALETTES.length];
 
@@ -174,7 +175,7 @@ export class LandingPage implements Sketch {
     const yOff = Math.sin(p.frameCount * 0.05) * 5;
     p.translate(0, 200 + yOff, 0);
     
-    p.text("merci de choisir une experience pour commencer", 0, 0);
+    p.text(t('landing_cta'), 0, 0);
     p.pop();
   }
   

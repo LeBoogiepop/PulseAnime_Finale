@@ -1,6 +1,5 @@
-
 <!DOCTYPE html>
-<html lang="fr" class="dark">
+<html lang="en" class="dark">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -104,37 +103,37 @@
       <div class="bg-[#0a0a0a] border border-white/20 p-8 max-w-2xl w-full m-4 shadow-2xl text-gray-300 relative">
         <button id="close-about" class="absolute top-4 right-4 text-gray-500 hover:text-white">✕</button>
         <h2 class="text-3xl font-bold text-white mb-1 tracking-tighter">PULSE<span class="text-gray-400">ANIME</span></h2>
-        <div class="text-xs uppercase tracking-widest text-gray-500 mb-6">Solution d'art interactif</div>
+        <div class="text-xs uppercase tracking-widest text-gray-500 mb-6" data-i18n="modal_subtitle">Interactive Art Solution</div>
         
         <div class="grid grid-cols-2 gap-8 text-sm">
           <div>
-            <h3 class="text-white font-bold uppercase mb-2 border-b border-white/10 pb-1">Équipe</h3>
+            <h3 class="text-white font-bold uppercase mb-2 border-b border-white/10 pb-1" data-i18n="modal_team">Team</h3>
             <ul class="space-y-1">
               <li>Maxime Lacombe</li>
               <li>Jules Milard</li>
               <li>Victor Verdier-Font</li>
             </ul>
             
-            <h3 class="text-white font-bold uppercase mt-6 mb-2 border-b border-white/10 pb-1">Stack Technique</h3>
+            <h3 class="text-white font-bold uppercase mt-6 mb-2 border-b border-white/10 pb-1" data-i18n="modal_stack">Tech Stack</h3>
             <p>p5.js, Web Audio API, GLSL Shaders, WebGL</p>
           </div>
           
           <div>
-            <h3 class="text-white font-bold uppercase mb-2 border-b border-white/10 pb-1">Contexte</h3>
-            <p class="mb-2">Création d'une expérience synesthésique immersive réagissant en temps réel aux fréquences sonores.</p>
+            <h3 class="text-white font-bold uppercase mb-2 border-b border-white/10 pb-1" data-i18n="modal_context">Context</h3>
+            <p class="mb-2" data-i18n="modal_context_desc">Creating an immersive synesthetic experience reacting in real-time to sound frequencies.</p>
             
-            <h3 class="text-white font-bold uppercase mt-4 mb-2 border-b border-white/10 pb-1">Objectifs</h3>
+            <h3 class="text-white font-bold uppercase mt-4 mb-2 border-b border-white/10 pb-1" data-i18n="modal_objectives">Objectives</h3>
             <ul class="list-disc list-inside text-gray-400 text-xs space-y-1">
-              <li>Analyse audio temps réel (FFT)</li>
-              <li>Visualisation GPU performante</li>
-              <li>Interactivité utilisateur (Paramètres)</li>
-              <li>Architecture modulaire</li>
+              <li data-i18n="modal_obj_1">Real-time Audio Analysis (FFT)</li>
+              <li data-i18n="modal_obj_2">High-perf GPU Visualization</li>
+              <li data-i18n="modal_obj_3">User Interactivity</li>
+              <li data-i18n="modal_obj_4">Modular Architecture</li>
             </ul>
           </div>
         </div>
         
-        <div class="mt-8 text-xs text-gray-500 pt-4 border-t border-white/10">
-          Encadrants : Andréa Bareggi & Lamine Amour • ESME Sudria 2025
+        <div class="mt-8 text-xs text-gray-500 pt-4 border-t border-white/10" data-i18n="modal_footer">
+          Supervisors: Andréa Bareggi & Lamine Amour • ESME Sudria 2025
         </div>
       </div>
     </div>
@@ -142,14 +141,14 @@
     <!-- Settings Sidebar (Left) -->
     <div id="settings-panel" class="fixed top-0 left-0 h-full w-80 bg-black/95 backdrop-blur border-r border-white/10 z-40 transform -translate-x-full transition-transform duration-300 flex flex-col shadow-[5px_0_30px_rgba(0,0,0,0.8)]">
       <div class="p-4 border-b border-white/10 flex justify-between items-center bg-white/5">
-        <h2 class="text-white font-bold uppercase tracking-widest text-sm">CONFIGURATION</h2>
+        <h2 class="text-white font-bold uppercase tracking-widest text-sm" data-i18n="settings_title">CONFIGURATION</h2>
         <button id="close-settings" class="text-gray-400 hover:text-white transition-colors hover:rotate-90 duration-300">✕</button>
       </div>
       
       <!-- Tabs -->
       <div class="flex border-b border-white/10">
-        <button id="tab-params" class="flex-1 py-3 text-[10px] tracking-widest font-bold text-white bg-white/5 border-b-2 border-white">CONTROLE</button>
-        <button id="tab-presets" class="flex-1 py-3 text-[10px] tracking-widest font-bold text-gray-500 hover:bg-white/5 border-b-2 border-transparent">PRESETS</button>
+        <button id="tab-params" class="flex-1 py-3 text-[10px] tracking-widest font-bold text-white bg-white/5 border-b-2 border-white" data-i18n="tab_control">CONTROL</button>
+        <button id="tab-presets" class="flex-1 py-3 text-[10px] tracking-widest font-bold text-gray-500 hover:bg-white/5 border-b-2 border-transparent" data-i18n="tab_presets">PRESETS</button>
       </div>
 
       <!-- Content -->
@@ -160,8 +159,8 @@
       <!-- Presets Content (Hidden by default) -->
       <div class="flex-1 overflow-y-auto p-5 space-y-4 hidden custom-scrollbar" id="presets-content">
         <div class="flex gap-2">
-          <input type="text" id="preset-name" placeholder="NOM DU PRESET..." class="bg-black border border-white/20 text-white text-xs p-2 flex-1 outline-none focus:border-white font-mono uppercase placeholder-gray-600">
-          <button id="save-preset" class="px-3 bg-white/10 text-white border border-white/30 text-xs font-bold hover:bg-white hover:text-black transition-colors">SAVE</button>
+          <input type="text" id="preset-name" placeholder="PRESET NAME..." class="bg-black border border-white/20 text-white text-xs p-2 flex-1 outline-none focus:border-white font-mono uppercase placeholder-gray-600" data-i18n-placeholder="preset_placeholder">
+          <button id="save-preset" class="px-3 bg-white/10 text-white border border-white/30 text-xs font-bold hover:bg-white hover:text-black transition-colors" data-i18n="btn_save">SAVE</button>
         </div>
         <div id="presets-list" class="space-y-2">
           <!-- List injected here -->
@@ -178,29 +177,40 @@
           <h1 class="text-4xl font-bold text-white tracking-tighter">
             PULSE<span class="text-gray-400">ANIME</span>
           </h1>
-          <div class="text-xs text-gray-400 opacity-70 mt-1 tracking-widest uppercase">Expérience Audio Réactive</div>
+          <div class="text-xs text-gray-400 opacity-70 mt-1 tracking-widest uppercase" data-i18n="app_subtitle">Audio Reactive Experience</div>
         </div>
 
         <!-- Top Right Controls -->
         <div class="flex flex-col gap-2 items-end">
             
             <div class="flex gap-2 mb-2">
-               <button id="btn-about" class="w-8 h-8 flex items-center justify-center border border-white/20 text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition-colors" title="À Propos">
+               <button id="btn-about" class="w-8 h-8 flex items-center justify-center border border-white/20 text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition-colors" title="About">
                 ?
               </button>
+              
+              <!-- Language Toggle -->
+              <button id="lang-toggle" class="w-8 h-8 flex items-center justify-center border border-white/20 text-white font-mono text-xs hover:bg-white hover:text-black transition-colors bg-black/50 backdrop-blur">
+                FR
+              </button>
+
               <label class="cursor-pointer px-3 py-1 border border-white/20 text-white text-xs font-mono uppercase hover:bg-white hover:text-black transition-colors bg-black/50 backdrop-blur h-8 flex items-center">
-                  📁 AUDIO
+                  <span data-i18n="btn_audio">📁 AUDIO</span>
                   <input type="file" id="audio-upload" accept="audio/*">
               </label>
-              <label class="cursor-pointer px-3 py-1 border border-white/20 text-white text-xs font-mono uppercase hover:bg-white hover:text-black transition-colors bg-black/50 backdrop-blur h-8 flex items-center">
-                  🖼️ FOND
-                  <input type="file" id="bg-upload" accept="image/*">
-              </label>
+              <div class="flex items-center gap-1">
+                <label class="cursor-pointer px-3 py-1 border border-white/20 text-white text-xs font-mono uppercase hover:bg-white hover:text-black transition-colors bg-black/50 backdrop-blur h-8 flex items-center">
+                    <span data-i18n="btn_bg">🖼️ BG</span>
+                    <input type="file" id="bg-upload" accept="image/*">
+                </label>
+                <button id="remove-bg-btn" class="hidden h-8 w-8 items-center justify-center border border-white/20 text-red-500 hover:text-white hover:bg-red-900/50 transition-colors bg-black/50 backdrop-blur" title="Remove Image">
+                  ✕
+                </button>
+              </div>
             </div>
             
             <div id="audio-controls" class="flex gap-2 hidden">
-                <button id="play-audio" class="px-3 py-1 bg-white text-black text-xs font-bold font-mono uppercase hover:bg-gray-200">LECTURE</button>
-                <button id="stop-audio" class="px-3 py-1 bg-gray-700 text-white text-xs font-bold font-mono uppercase hover:bg-gray-600">STOP</button>
+                <button id="play-audio" class="px-3 py-1 bg-white text-black text-xs font-bold font-mono uppercase hover:bg-gray-200" data-i18n="btn_play">PLAY</button>
+                <button id="stop-audio" class="px-3 py-1 bg-gray-700 text-white text-xs font-bold font-mono uppercase hover:bg-gray-600" data-i18n="btn_stop">STOP</button>
             </div>
         </div>
       </div>
@@ -235,7 +245,7 @@
              <!-- 1. Global Sensitivity Slider (Top) -->
              <div class="flex flex-col gap-1.5">
                 <div class="flex justify-between text-[10px] text-gray-400 uppercase font-bold font-mono tracking-wider">
-                    <span>Sensibilité Audio</span>
+                    <span data-i18n="sens_label">Audio Sensitivity</span>
                     <span id="sens-val" class="text-white">1.0</span>
                 </div>
                 <input type="range" id="sensitivity-slider" min="0.1" max="3.0" step="0.1" value="1.0" class="w-full" style="background: linear-gradient(to right, #ffffff 33%, #333333 33%);">
@@ -243,7 +253,7 @@
             
             <!-- 2. Mic & Spectrum Viz (Middle) -->
             <div class="flex items-center gap-3 w-full h-8">
-                <button id="mic-btn" class="h-full px-4 bg-white/5 text-white border border-white/20 hover:bg-white hover:text-black transition-all uppercase text-[10px] font-bold tracking-widest whitespace-nowrap flex items-center justify-center shrink-0">
+                <button id="mic-btn" class="h-full px-4 bg-white/5 text-white border border-white/20 hover:bg-white hover:text-black transition-all uppercase text-[10px] font-bold tracking-widest whitespace-nowrap flex items-center justify-center shrink-0" data-i18n="mic_off">
                     MICRO OFF
                 </button>
                 
@@ -253,8 +263,8 @@
 
             <!-- 3. Shortcuts Display (Bottom) -->
             <div class="flex justify-between items-center border-t border-white/5 pt-2 mt-1">
-                 <div class="text-[9px] text-gray-500 font-mono uppercase tracking-tight">
-                    [←/→] NAVIGATEUR • [ESPACE] PAUSE • [H] UI • [R] CONFIG
+                 <div class="text-[9px] text-gray-500 font-mono uppercase tracking-tight" data-i18n="shortcuts">
+                    [←/→] NAVIGATE • [SPACE] PAUSE • [H] UI • [R] CONFIG
                 </div>
                 <div class="text-[9px] text-gray-600 font-mono" id="fps-counter">60 FPS</div>
             </div>

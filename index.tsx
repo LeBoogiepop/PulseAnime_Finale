@@ -2,6 +2,7 @@
 import p5 from 'p5';
 import { audioEngine } from './audio';
 import { Sketch } from './types';
+import { t, setLang, getLang } from './i18n';
 import { 
   FlowTrails, 
   PlexusVoronoi, 
@@ -49,9 +50,11 @@ const sensitivityDisplay = document.getElementById('sens-val') as HTMLSpanElemen
 // Upload Elements
 const audioInput = document.getElementById('audio-upload') as HTMLInputElement;
 const bgInput = document.getElementById('bg-upload') as HTMLInputElement;
+const removeBgBtn = document.getElementById('remove-bg-btn') as HTMLButtonElement;
 const playAudioBtn = document.getElementById('play-audio') as HTMLButtonElement;
 const stopAudioBtn = document.getElementById('stop-audio') as HTMLButtonElement;
 const audioControls = document.getElementById('audio-controls') as HTMLDivElement;
+const langToggle = document.getElementById('lang-toggle') as HTMLButtonElement;
 
 // Modal & Panels
 const aboutModal = document.getElementById('about-modal') as HTMLDivElement;
@@ -70,6 +73,42 @@ const presetNameInput = document.getElementById('preset-name') as HTMLInputEleme
 const savePresetBtn = document.getElementById('save-preset') as HTMLButtonElement;
 const presetsList = document.getElementById('presets-list') as HTMLDivElement;
 
+// --- I18N UPDATE FUNCTION ---
+const updateUIText = () => {
+  // Update static data-i18n elements
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (key) el.textContent = t(key);
+  });
+
+  // Update placeholders
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.getAttribute('data-i18n-placeholder');
+    if (key) (el as HTMLInputElement).placeholder = t(key);
+  });
+
+  // Update Lang Button
+  langToggle.innerText = getLang() === 'en' ? 'FR' : 'EN';
+
+  // Update Dynamic Sketch Buttons
+  const buttons = Array.from(controlsContainer.children) as HTMLButtonElement[];
+  availableSketches.forEach((s, i) => {
+    if (buttons[i]) buttons[i].innerText = t(`sketch_${s.id}_name`);
+  });
+
+  // Regenerate Settings UI to translate params/descriptions
+  generateSettingsUI();
+  // Update Mic Button Status text
+  if (audioEngine.isMicActive) {
+    micBtn.innerText = t("mic_on");
+  } else {
+    micBtn.innerText = t("mic_off");
+  }
+
+  // Update Presets labels
+  loadPresetsList();
+};
+
 // --- HELPER: GENERATE SETTINGS UI ---
 const generateSettingsUI = () => {
   settingsContent.innerHTML = '';
@@ -79,7 +118,7 @@ const generateSettingsUI = () => {
   resetSection.className = "mb-8 pb-8 border-b border-white/10";
   
   const resetBtn = document.createElement('button');
-  resetBtn.innerText = "REBOOT SYSTEM";
+  resetBtn.innerText = t("reboot_btn");
   resetBtn.className = "w-full py-3 bg-red-900/20 border border-red-500/30 text-red-500 text-xs font-bold tracking-[0.2em] hover:bg-red-600 hover:text-white transition-all uppercase hover:shadow-lg";
   resetBtn.onclick = () => {
     if (p5Instance) {
@@ -102,11 +141,12 @@ const generateSettingsUI = () => {
     
     const infoTitle = document.createElement('div');
     infoTitle.className = "text-[10px] text-gray-400 font-mono uppercase tracking-widest mb-2 flex items-center gap-2";
-    infoTitle.innerHTML = `<span class="w-2 h-2 bg-white rounded-full animate-pulse"></span> IMPACT AUDIO`;
+    infoTitle.innerHTML = `<span class="w-2 h-2 bg-white rounded-full animate-pulse"></span> ${t("impact_audio")}`;
     
     const infoText = document.createElement('p');
     infoText.className = "text-xs text-gray-300 font-mono leading-relaxed";
-    infoText.innerText = currentSketch.audioReactivity;
+    // Use Translation key if available, else fallback
+    infoText.innerText = t(`sketch_${currentSketch.id}_desc`);
     
     infoBox.appendChild(infoTitle);
     infoBox.appendChild(infoText);
@@ -116,7 +156,7 @@ const generateSettingsUI = () => {
   if (!currentSketch.params) {
     const msg = document.createElement('div');
     msg.className = 'text-gray-600 text-xs italic text-center mt-10 font-mono border border-white/5 p-4 rounded';
-    msg.innerText = "NO PARAMETERS AVAILABLE";
+    msg.innerText = t("no_params");
     settingsContent.appendChild(msg);
     return;
   }
@@ -124,6 +164,10 @@ const generateSettingsUI = () => {
   Object.keys(currentSketch.params).forEach(key => {
     const param = currentSketch.params![key];
     
+    // Attempt to translate param name using key
+    const translatedName = t(`param_${key}`);
+    const displayName = translatedName !== `param_${key}` ? translatedName : param.name;
+
     if (param.type === 'slider') {
       const container = document.createElement('div');
       container.className = 'group mb-6';
@@ -134,7 +178,7 @@ const generateSettingsUI = () => {
 
       const label = document.createElement('label');
       label.className = 'text-[10px] text-gray-400 font-mono uppercase tracking-widest group-hover:text-white transition-colors';
-      label.innerText = param.name;
+      label.innerText = displayName;
 
       const valDisplay = document.createElement('div');
       // Minimalist value display: White text, clean
@@ -183,7 +227,7 @@ const generateSettingsUI = () => {
       
       const label = document.createElement('span');
       label.className = "text-[10px] text-gray-400 font-mono uppercase tracking-widest";
-      label.innerText = param.name;
+      label.innerText = displayName;
       
       const inputWrapper = document.createElement('div');
       inputWrapper.className = "relative h-8 w-full border border-white/20 hover:border-white transition-colors bg-white/5";
@@ -234,7 +278,7 @@ const loadPresetsList = () => {
       actions.className = 'flex gap-3';
       
       const loadBtn = document.createElement('button');
-      loadBtn.innerText = 'LOAD';
+      loadBtn.innerText = t('btn_load');
       loadBtn.className = 'text-[9px] text-white font-bold opacity-50 group-hover:opacity-100 transition-opacity hover:underline';
       loadBtn.onclick = () => {
         try {
@@ -252,7 +296,7 @@ const loadPresetsList = () => {
       };
 
       const delBtn = document.createElement('button');
-      delBtn.innerText = 'DEL';
+      delBtn.innerText = t('btn_del');
       delBtn.className = 'text-[9px] text-red-500 hover:text-red-300 font-bold opacity-50 group-hover:opacity-100 transition-opacity';
       delBtn.onclick = () => {
         localStorage.removeItem(key);
@@ -354,7 +398,7 @@ const initUI = () => {
   // Generate Sketch Buttons
   availableSketches.forEach((s, idx) => {
     const btn = document.createElement('button');
-    btn.innerText = s.name;
+    btn.innerText = t(`sketch_${s.id}_name`);
     // Initial state is unselected because we start on Landing Page (-1)
     btn.className = 'px-3 py-1 border border-white/20 text-gray-400 text-xs font-mono uppercase hover:bg-white/10 hover:text-white transition-colors';
     btn.onclick = () => switchSketch(idx);
@@ -383,18 +427,18 @@ const initUI = () => {
     try {
       const isActive = await audioEngine.toggleMicrophone();
       if (isActive) {
-        micBtn.innerText = "ON AIR";
+        micBtn.innerText = t("mic_on");
         // Active Red
         micBtn.classList.add('bg-red-900/20', 'text-red-500', 'border-red-500', 'shadow-[0_0_10px_rgba(255,0,0,0.4)]');
         micBtn.classList.remove('bg-white/5', 'border-white/20');
       } else {
-        micBtn.innerText = "MICRO OFF";
+        micBtn.innerText = t("mic_off");
         micBtn.classList.remove('bg-red-900/20', 'text-red-500', 'border-red-500', 'shadow-[0_0_10px_rgba(255,0,0,0.4)]');
         micBtn.classList.add('bg-white/5', 'text-white', 'border-white/20');
       }
     } catch (e) {
       console.error("Mic Error", e);
-      micBtn.innerText = "ERR";
+      micBtn.innerText = t("mic_err");
     }
   };
   
@@ -405,7 +449,7 @@ const initUI = () => {
       const arrayBuffer = await file.arrayBuffer();
       audioEngine.playFile(arrayBuffer);
       audioControls.classList.remove('hidden');
-      micBtn.innerText = "MICRO OFF";
+      micBtn.innerText = t("mic_off");
       micBtn.classList.remove('bg-red-900/20', 'text-red-500', 'border-red-500');
       micBtn.classList.add('bg-white/5', 'text-white', 'border-white/20');
     }
@@ -429,8 +473,25 @@ const initUI = () => {
       const url = URL.createObjectURL(file);
       p5Instance.loadImage(url, (img) => {
         uploadedBgImage = img;
+        removeBgBtn.classList.remove('hidden');
+        removeBgBtn.classList.add('flex');
       });
     }
+  };
+
+  // Remove BG Button
+  removeBgBtn.onclick = () => {
+    uploadedBgImage = null;
+    bgInput.value = '';
+    removeBgBtn.classList.add('hidden');
+    removeBgBtn.classList.remove('flex');
+  };
+
+  // Language Toggle
+  langToggle.onclick = () => {
+    const nextLang = getLang() === 'en' ? 'fr' : 'en';
+    setLang(nextLang);
+    updateUIText();
   };
 
   // --- Modal Logic ---
@@ -509,6 +570,9 @@ const initUI = () => {
     }
     if (currentSketch.keyPressed && p5Instance) currentSketch.keyPressed(p5Instance, e.key);
   });
+
+  // Run initial text update
+  updateUIText();
 };
 
 // --- P5 INSTANCE DEFINITION ---
